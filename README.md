@@ -1,6 +1,6 @@
 # Spatio-Temporal Modeling
 
-Pytorch implementation for the paper "Comparative Analysis of CNN-based SpatiotemporalReasoning in Videos".
+Pytorch implementation for the paper "Comparative Analysis of CNN-based Spatiotemporal Reasoning in Videos".
 
 **Maintainers:** [Okan Köpüklü](https://github.com/okankop) and [Fabian Herzog](https://github.com/fubel)
 
