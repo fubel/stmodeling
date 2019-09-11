@@ -16,7 +16,7 @@ The pretrained models can be found in our [Google Drive](https://drive.google.co
 
 Clone the repo with the following command:
 ```bash
-git clone git@gitlab.com:okankopuklu/stmodeling.git --recursive
+git clone git@github.com:fubel/stmodeling.git
 ```
 
 The project requirements can be found in the file `requirements.txt`. To run the code, create a Python >= 3.6 virtual environment and install 
