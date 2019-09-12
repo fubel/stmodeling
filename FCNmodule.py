@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class CONVmodule(torch.nn.Module):
+class FCNmodule(torch.nn.Module):
     """
     This is the CONV implementation used for linking spatio-temporal
     features coming from different segments.
@@ -47,7 +47,7 @@ class CONVmodule(torch.nn.Module):
         return output
 
 
-def return_CONV(relation_type, img_feature_dim, num_frames, num_class):
-    CONVmodel = CONVmodule(img_feature_dim, num_frames, num_class, relation_type)
+def return_FCN(relation_type, img_feature_dim, num_frames, num_class):
+    FCNmodel = FCNmodule(img_feature_dim, num_frames, num_class, relation_type)
 
-    return CONVmodel
+    return FCNmodel
