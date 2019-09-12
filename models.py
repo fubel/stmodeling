@@ -76,8 +76,8 @@ class TSN(nn.Module):
         elif self.consensus_type in ['TRNmultiscale']:
             self.consensus = TRNmodule.return_TRN(self.consensus_type, self.img_feature_dim, self.num_segments,
                                                   num_class)
-        elif self.consensus_type in ['CONV']:
-            self.consensus = FCNmodule.return_CONV(self.consensus_type, self.img_feature_dim, self.num_segments,
+        elif self.consensus_type in ['FCN']:
+            self.consensus = FCNmodule.return_FCN(self.consensus_type, self.img_feature_dim, self.num_segments,
                                                    num_class)
         elif self.consensus_type in ['LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'GFLSTM', 'BLSTM']:
             self.consensus = RNNmodule.return_RNN(self.consensus_type, self.img_feature_dim, args.rnn_hidden_size,
@@ -110,7 +110,7 @@ class TSN(nn.Module):
             self.new_fc = None
         else:
             setattr(self.base_model, self.base_model.last_layer_name, nn.Dropout(p=self.dropout))
-            if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'CONV', 'GFLSTM',
+            if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'FCN', 'GFLSTM',
                                        'BLSTM', 'DNDF']:
                 # set the MFFs feature dimension
                 self.new_fc = nn.Linear(feature_dim, self.img_feature_dim)
