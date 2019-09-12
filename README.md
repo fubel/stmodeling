@@ -1,5 +1,5 @@
 
-<p align="center"><img src="https://github.com/fubel/stmodeling/blob/master/ops/STM_arch.jpg" align="middle" width="500" title="Motion Fused Frames" /></p>
+<p align="center"><img src="https://github.com/fubel/stmodeling/blob/master/ops/STM_arch.jpg" align="middle" width="400" title="Motion Fused Frames" /></p>
 
 # Spatio-Temporal Modeling
 
