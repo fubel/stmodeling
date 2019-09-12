@@ -1,6 +1,9 @@
+
+<p align="center"><img src="https://github.com/fubel/stmodeling/blob/master/ops/STM_arch.jpg" align="middle" width="500" title="Motion Fused Frames" /></p>
+
 # Spatio-Temporal Modeling
 
-Pytorch implementation for the paper "Comparative Analysis of CNN-based Spatiotemporal Reasoning in Videos".
+Pytorch implementation for the paper ["Comparative Analysis of CNN-based Spatiotemporal Reasoning in Videos"](https://arxiv.org/pdf/1909.05165.pdf). In this work, different **'Spatiotemporal Modeling Blocks'** are analyzed for the architecture illustrated at the above figure.
 
 **Maintainers:** [Okan Köpüklü](https://github.com/okankop) and [Fabian Herzog](https://github.com/fubel)
 
@@ -53,6 +56,17 @@ Assume the structure of data directories is the following:
 
 
 ### Running the Code
+Currently the following **ST Modeling** blocks are implemented:
+ - MLP
+ - TRNmiltiscale
+ - RNN_TANH
+ - RNN_RELU
+ - LSTM
+ - GRU
+ - BLSTM
+ - FCN
+ 
+ 
 Followings are some examples for training under different scenarios:
 
 * Train 8-segment network for Jester with MLP and squeeznet backbone 
