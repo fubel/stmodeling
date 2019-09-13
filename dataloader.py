@@ -1,10 +1,10 @@
 from torch import nn
 
-from ops.basic_ops import ConsensusModule, Identity
+from ops.basic_ops import ConsensusModule
 from transforms import *
 from torch.nn.init import normal, constant
 
-import MLPmodule, RNNmodule, FCNmodule
+from modules import FCNmodule, MLPmodule, RNNmodule
 
 
 class TSN(nn.Module):
