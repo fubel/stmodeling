@@ -12,14 +12,14 @@ The structure was inspired by the project [TRN-pytorch](https://github.com/metal
 
 The pretrained models can be found in our [Google Drive](https://drive.google.com/drive/folders/13x6ClKowbfPLf4RgA7ITt4mVEqtReqWI?usp=sharing). 
 
-## Setup
-
-### Installing Requirements
+## Setup 
 
 Clone the repo with the following command:
 ```bash
 git clone git@github.com:fubel/stmodeling.git
 ```
+
+### Setup in virtual environment 
 
 The project requirements can be found in the file `requirements.txt`. To run the code, create a Python >= 3.6 virtual environment and install 
 the requirements with 
@@ -52,10 +52,9 @@ Assume the structure of data directories is the following:
        .../(saved models for the last checkpoint and best model)
 ```
 
-
-
 ### Running the Code
 Currently the following **ST Modeling** blocks are implemented:
+
  - MLP
  - TRNmiltiscale
  - RNN_TANH
@@ -64,6 +63,12 @@ Currently the following **ST Modeling** blocks are implemented:
  - GRU
  - BLSTM
  - FCN
+
+
+Furthermore, the following backbone feature extractors are implemented:
+ 
+ - squeezenet1_1 
+ - BNInception 
  
  
 Followings are some examples for training under different scenarios:

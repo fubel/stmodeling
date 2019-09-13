@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from opts import parser
-from GFLSTM import GFLSTM
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
 import numpy as np
@@ -52,27 +51,13 @@ class RNNmodule(torch.nn.Module):
                               dropout=self.dropout)
 
     def forward(self, input):
-        # print(sum(p.numel() for p in self.rnn.parameters() if p.requires_grad)+sum(p.numel() for p in self.fc.parameters() if p.requires_grad))
-        if (self.rnn_type == 'GFLSTM'):
-            nbatch = input.size()[0]
-            zero_h = Variable(torch.zeros(self.num_layers, nbatch, self.hidden_size))
-            zero_c = Variable(torch.zeros(self.num_layers, nbatch, self.hidden_size))
-
-            r_out, (h_n, h_c) = self.rnn(input, (zero_h.cuda(), zero_c.cuda()))
-            out = self.fc(r_out[:, -1, :])
-            #           input = input.permute(1, 0, 2)
-            #          r_out, (h_n, h_c) = self.rnn(input, None)
-            #         out = self.fc(r_out[-1])
-            return out
-        elif (self.rnn_type == 'BLSTM'):
+        if (self.rnn_type == 'BLSTM'):
             input = input.permute(1, 0, 2)
             output_seq, _ = self.rnn(input)
             concatenated_output = torch.cat(
                 (output_seq[0][:, self.hidden_size // 2:], output_seq[-1][:, :self.hidden_size // 2]), 1)
             last_output = self.fc(concatenated_output)
             return last_output.cuda()
-
-
         else:
             input = input.permute(1, 0, 2)
             output_seq, _ = self.rnn(input)

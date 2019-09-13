@@ -1,11 +1,11 @@
 from torch import nn
 
-from ops.basic_ops import ConsensusModule, Identity
+from ops.basic_ops import ConsensusModule
 from transforms import *
 from torch.nn.init import normal_, constant_
 
 import pretrainedmodels
-import MLPmodule, RNNmodule, FCNmodule, TRNmodule, DNDFmodule, TSNmodule
+from modules import FCNmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule
 
 
 class TSN(nn.Module):
@@ -78,7 +78,7 @@ class TSN(nn.Module):
                                                   num_class)
         elif self.consensus_type in ['FCN']:
             self.consensus = FCNmodule.return_FCN(self.consensus_type, self.img_feature_dim, self.num_segments,
-                                                   num_class)
+                                                  num_class)
         elif self.consensus_type in ['LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'GFLSTM', 'BLSTM']:
             self.consensus = RNNmodule.return_RNN(self.consensus_type, self.img_feature_dim, args.rnn_hidden_size,
                                                   self.num_segments, num_class, args.rnn_layer, args.rnn_dropout)
