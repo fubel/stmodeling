@@ -26,13 +26,13 @@ parser.add_argument('--rnn_dropout', default=0.2, type=float,
                     help="the dropout rate applied at rnn layers number of layers in rnn")
 
 # ========================= Learning Configs ==========================
-parser.add_argument('--epochs', default=40, type=int, metavar='N',
+parser.add_argument('--epochs', default=30, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
                     metavar='LR', help='initial learning rate')
-parser.add_argument('--lr_steps', default=[20, 30], type=float, nargs="+",
+parser.add_argument('--lr_steps', default=[15, 25], type=float, nargs="+",
                     metavar='LRSteps', help='epochs to decay learning rate by 10')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')

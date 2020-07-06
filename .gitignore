@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# TEMPORARY
+something/
+*train_videofolder.txt
+*val_videofolder.txt
+*category.txt
+
 # C extensions
 *.so
 

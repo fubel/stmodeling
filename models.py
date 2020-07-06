@@ -5,7 +5,7 @@ from transforms import *
 from torch.nn.init import normal_, constant_
 
 import pretrainedmodels
-from modules import FCNmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule
+from modules import FCNmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule
 
 
 class TSN(nn.Module):
@@ -21,7 +21,7 @@ class TSN(nn.Module):
         self.crop_num = 1
         self.consensus_type = args.consensus_type
         self.img_feature_dim = args.img_feature_dim  # the dimension of the CNN feature to represent each frame
-        base_model = args.arch
+        self.base_model_name = args.arch
         nhidden = 512
         print_spec = True
         new_length = None
@@ -48,12 +48,12 @@ class TSN(nn.Module):
         consensus_module:   {}
         dropout_ratio:      {}
         img_feature_dim:    {}
-            """.format(base_model, self.modality, self.num_segments, self.new_length, self.consensus_type, self.dropout,
+            """.format(self.base_model_name, self.modality, self.num_segments, self.new_length, self.consensus_type, self.dropout,
                        self.img_feature_dim)))
 
-        self._prepare_base_model(base_model)
+        self._prepare_base_model()
 
-        feature_dim = self._prepare_tsn(num_class, base_model)
+        feature_dim = self._prepare_tsn(num_class)
 
         if self.modality == 'Flow':
             print("Converting the ImageNet model to a flow init model")
@@ -85,6 +85,9 @@ class TSN(nn.Module):
         elif self.consensus_type == 'DNDF':
             self.consensus = DNDFmodule.return_DNDF(self.consensus_type, self.img_feature_dim, self.num_segments,
                                                     num_class)
+        elif self.consensus_type == 'CONVLSTM':
+            self.consensus = CONVLSTMmodule.return_CONVLSTM(self.consensus_type, self.img_feature_dim, args.rnn_hidden_size,
+                                                            num_class, args.rnn_layer)
         else:
             self.consensus = ConsensusModule(consensus_type)
 
@@ -95,16 +98,22 @@ class TSN(nn.Module):
         if not args.no_partialbn:
             self.partialBN(True)
 
-    def _prepare_tsn(self, num_class, base_model):
-        if base_model == 'squeezenet1_1':
+    def _prepare_tsn(self, num_class):
+        if self.base_model_name == 'squeezenet1_1':
             last_Fire = getattr(self.base_model, self.base_model.last_layer_name)
             last_layer = getattr(last_Fire, 'expand3x3')
             feature_dim = last_layer.out_channels * 2  # Squeeze net concatenates two output from 3x3 and 1x1 kernel. So the output dimension should be doubled.
-            self.base_model.add_module('AvgPooling', nn.AvgPool2d(13, stride=1))
+            if not self.consensus_type == 'CONVLSTM':
+                self.base_model.add_module('AvgPooling', nn.AvgPool2d(13, stride=1))
             self.base_model.add_module('fc', nn.Linear(feature_dim, num_class))
             self.base_model.last_layer_name = 'fc'
+        elif self.base_model_name == 'BNInception':
+            feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
+            setattr(self.base_model, 'global_pool', nn.Dropout(p=0))
         else:
             feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
+        
+
         if self.dropout == 0:
             setattr(self.base_model, self.base_model.last_layer_name, nn.Linear(feature_dim, num_class))
             self.new_fc = None
@@ -117,6 +126,10 @@ class TSN(nn.Module):
             elif self.consensus_type in ['TSN']:
                 # the default consensus types in TSN is avg
                 self.new_fc = nn.Linear(feature_dim, num_class)
+            elif self.consensus_type in ['CONVLSTM']:
+                # the default consensus types in TSN is avg
+                self.new_fc = nn.Conv2d(feature_dim, self.img_feature_dim, 1)
+
 
         std = 0.001
         if self.new_fc is None:
@@ -125,13 +138,14 @@ class TSN(nn.Module):
         else:
             normal_(self.new_fc.weight, 0, std)
             constant_(self.new_fc.bias, 0)
+
         return feature_dim
 
-    def _prepare_base_model(self, base_model):
+    def _prepare_base_model(self):
 
-        if 'resnet' in base_model or 'vgg' in base_model or 'squeezenet1_1' in base_model:
-            self.base_model = pretrainedmodels.__dict__[base_model](num_classes=1000, pretrained='imagenet')
-            if base_model == 'squeezenet1_1':
+        if 'resnet' in self.base_model_name or 'vgg' in self.base_model_name or 'squeezenet1_1' in self.base_model_name:
+            self.base_model = pretrainedmodels.__dict__[self.base_model_name](num_classes=1000, pretrained='imagenet')
+            if self.base_model_name == 'squeezenet1_1':
                 self.base_model = self.base_model.features
                 self.base_model.last_layer_name = '12'
             else:
@@ -146,7 +160,7 @@ class TSN(nn.Module):
             elif self.modality == 'RGBDiff':
                 self.input_mean = [0.485, 0.456, 0.406] + [0] * 3 * self.new_length
                 self.input_std = self.input_std + [np.mean(self.input_std) * 2] * 3 * self.new_length
-        elif base_model == 'BNInception':
+        elif self.base_model_name == 'BNInception':
             self.base_model = pretrainedmodels.__dict__['bninception'](num_classes=1000, pretrained='imagenet')
             self.base_model.last_layer_name = 'last_linear'
             self.input_size = 224
@@ -156,8 +170,8 @@ class TSN(nn.Module):
                 self.input_mean = [128]
             elif self.modality == 'RGBDiff':
                 self.input_mean = self.input_mean * (1 + self.new_length)
-        elif 'resnext101' in base_model:
-            self.base_model = pretrainedmodels.__dict__[base_model](num_classes=1000, pretrained='imagenet')
+        elif 'resnext101' in self.base_model_name:
+            self.base_model = pretrainedmodels.__dict__[self.base_model_name](num_classes=1000, pretrained='imagenet')
             print(self.base_model)
             self.base_model.last_layer_name = 'last_linear'
             self.input_size = 224
@@ -168,7 +182,7 @@ class TSN(nn.Module):
             elif self.modality == 'RGBDiff':
                 self.input_mean = self.input_mean * (1 + self.new_length)
         else:
-            raise ValueError('Unknown base model: {}'.format(base_model))
+            raise ValueError('Unknown base model: {}'.format(self.base_model_name))
 
     def train(self, mode=True):
         """
@@ -266,7 +280,10 @@ class TSN(nn.Module):
         if self.modality == 'RGBFlow':
             sample_len = 3 + 2 * self.new_length
 
+
         base_out = self.base_model(input.view((-1, sample_len) + input.size()[-2:]))
+        if self.consensus_type == "CONVLSTM" and self.base_model_name == 'BNInception':
+            base_out = base_out.view(base_out.size(0), 1024, 7, 7)
         base_out = base_out.squeeze()
         if self.dropout > 0:
             base_out = self.new_fc(base_out)

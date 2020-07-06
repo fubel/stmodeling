@@ -3,7 +3,7 @@ import torch
 import torchvision
 import torchvision.datasets as datasets
 
-ROOT_DATASET = '/stmodeling'
+ROOT_DATASET = '/usr/home/kop/stmodeling'
 
 
 def return_jester(modality):
@@ -12,10 +12,10 @@ def return_jester(modality):
     filename_imglist_val = 'jester/val_videofolder.txt'
     if modality == 'RGB':
         prefix = '{:05d}.jpg'
-        root_data = 'jester'
+        root_data = '/usr/home/kop/stmodeling/datasets/jester'
     elif modality == 'RGBFlow':
         prefix = '{:05d}.jpg'
-        root_data = 'jester'
+        root_data = '/usr/home/kop/stmodeling/datasets/jester'
     else:
         print('no such modality:' + modality)
         os.exit()
@@ -25,12 +25,12 @@ def return_jester(modality):
 def return_somethingv2(modality):
     filename_categories = 'something/category.txt'
     if modality == 'RGB':
-        root_data = 'something'
+        root_data = '/usr/home/kop/stmodeling/datasets/something'
         filename_imglist_train = 'something/train_videofolder.txt'
         filename_imglist_val = 'something/val_videofolder.txt'
         prefix = '{:06d}.jpg'
     elif modality == 'Flow':
-        root_data = 'something'
+        root_data = '/usr/home/kop/stmodeling/datasets/something'
         filename_imglist_train = 'something/train_videofolder.txt'
         filename_imglist_val = 'something/val_videofolder.txt'
         prefix = '{:06d}.jpg'
