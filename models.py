@@ -5,7 +5,7 @@ from transforms import *
 from torch.nn.init import normal_, constant_
 
 import pretrainedmodels
-from modules import FCNmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule
+from modules import FCN2Dmodule, FCN3Dmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule
 
 
 class TSN(nn.Module):
@@ -76,8 +76,11 @@ class TSN(nn.Module):
         elif self.consensus_type in ['TRNmultiscale']:
             self.consensus = TRNmodule.return_TRN(self.consensus_type, self.img_feature_dim, self.num_segments,
                                                   num_class)
-        elif self.consensus_type in ['FCN']:
-            self.consensus = FCNmodule.return_FCN(self.consensus_type, self.img_feature_dim, self.num_segments,
+        elif self.consensus_type in ['FCN2D']:
+            self.consensus = FCN2Dmodule.return_FCN2D(self.consensus_type, self.img_feature_dim, self.num_segments,
+                                                  num_class)
+        elif self.consensus_type in ['FCN3D']:
+            self.consensus = FCN3Dmodule.return_FCN3D(self.consensus_type, self.img_feature_dim, self.num_segments,
                                                   num_class)
         elif self.consensus_type in ['LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'GFLSTM', 'BLSTM']:
             self.consensus = RNNmodule.return_RNN(self.consensus_type, self.img_feature_dim, args.rnn_hidden_size,
@@ -103,7 +106,7 @@ class TSN(nn.Module):
             last_Fire = getattr(self.base_model, self.base_model.last_layer_name)
             last_layer = getattr(last_Fire, 'expand3x3')
             feature_dim = last_layer.out_channels * 2  # Squeeze net concatenates two output from 3x3 and 1x1 kernel. So the output dimension should be doubled.
-            if not self.consensus_type == 'CONVLSTM':
+            if not self.consensus_type in ['CONVLSTM', 'FCN3D']:
                 self.base_model.add_module('AvgPooling', nn.AvgPool2d(13, stride=1))
             self.base_model.add_module('fc', nn.Linear(feature_dim, num_class))
             self.base_model.last_layer_name = 'fc'
@@ -119,14 +122,14 @@ class TSN(nn.Module):
             self.new_fc = None
         else:
             setattr(self.base_model, self.base_model.last_layer_name, nn.Dropout(p=self.dropout))
-            if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'FCN', 'GFLSTM',
-                                       'BLSTM', 'DNDF']:
+            if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'FCN2D',
+                                       'GFLSTM', 'BLSTM', 'DNDF']:
                 # set the MFFs feature dimension
                 self.new_fc = nn.Linear(feature_dim, self.img_feature_dim)
             elif self.consensus_type in ['TSN']:
                 # the default consensus types in TSN is avg
                 self.new_fc = nn.Linear(feature_dim, num_class)
-            elif self.consensus_type in ['CONVLSTM']:
+            elif self.consensus_type in ['CONVLSTM', 'FCN3D']:
                 # the default consensus types in TSN is avg
                 self.new_fc = nn.Conv2d(feature_dim, self.img_feature_dim, 1)
 
@@ -218,7 +221,7 @@ class TSN(nn.Module):
         conv_cnt = 0
         bn_cnt = 0
         for m in self.modules():
-            if isinstance(m, torch.nn.Conv2d) or isinstance(m, torch.nn.Conv1d):
+            if isinstance(m, torch.nn.Conv3d) or isinstance(m, torch.nn.Conv2d) or isinstance(m, torch.nn.Conv1d):
                 ps = list(m.parameters())
                 conv_cnt += 1
                 if conv_cnt == 1:
@@ -239,6 +242,8 @@ class TSN(nn.Module):
                 rnn_fc_weight.append(ps[0])
                 if len(ps) == 2:
                     rnn_fc_weight.append(ps[1])
+            elif isinstance(m, torch.nn.BatchNorm3d):
+                bn.extend(list(m.parameters()))
             elif isinstance(m, torch.nn.BatchNorm1d):
                 bn.extend(list(m.parameters()))
             elif isinstance(m, torch.nn.BatchNorm2d):
@@ -282,7 +287,7 @@ class TSN(nn.Module):
 
 
         base_out = self.base_model(input.view((-1, sample_len) + input.size()[-2:]))
-        if self.consensus_type == "CONVLSTM" and self.base_model_name == 'BNInception':
+        if self.consensus_type in ['CONVLSTM', 'FCN3D'] and self.base_model_name == 'BNInception':
             base_out = base_out.view(base_out.size(0), 1024, 7, 7)
         base_out = base_out.squeeze()
         if self.dropout > 0:
@@ -423,7 +428,7 @@ class TSN(nn.Module):
     def get_augmentation(self):
         if self.modality == 'RGB':
             return torchvision.transforms.Compose([GroupMultiScaleCrop(self.input_size, [1, .875, .75, .66]),
-                                                   # GroupRandomHorizontalFlip(is_flow=False)
+                                                   GroupRandomHorizontalFlip(is_flow=False)
                                                    ])
         elif self.modality == 'Flow':
             return torchvision.transforms.Compose([GroupMultiScaleCrop(self.input_size, [1, .875, .75]),
