@@ -3,7 +3,9 @@
 # CNN-based Spatio-Temporal Modeling 
 
 [![Paper](https://img.shields.io/badge/paper-arxiv.1909.05165-B31B1B.svg)](https://arxiv.org/abs/1909.05165) / [Video](https://youtu.be/MaH1LbzcWMU)
+
 </div>
+
 
 Pytorch implementation for the paper ["Comparative Analysis of CNN-based Spatiotemporal Reasoning in Videos"](https://arxiv.org/pdf/1909.05165.pdf). In this work, different **'Spatiotemporal Modeling Blocks'** are analyzed for the architecture illustrated at the above below.
 
