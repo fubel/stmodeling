@@ -2,12 +2,13 @@
 
 # CNN-based Spatio-Temporal Modeling 
 
-[![Paper](https://img.shields.io/badge/paper-arxiv.1909.05165-B31B1B.svg)](https://arxiv.org/abs/1909.05165)  
+[![Paper](https://img.shields.io/badge/paper-arxiv.1909.05165-B31B1B.svg)](https://arxiv.org/abs/1909.05165) / [Video](https://youtu.be/MaH1LbzcWMU)
+</div>
 
 Pytorch implementation for the paper ["Comparative Analysis of CNN-based Spatiotemporal Reasoning in Videos"](https://arxiv.org/pdf/1909.05165.pdf). In this work, different **'Spatiotemporal Modeling Blocks'** are analyzed for the architecture illustrated at the above below.
 
 <p align="center"><img src="https://github.com/fubel/stmodeling/blob/master/ops/STM_arch.jpg" align="middle" width="375" title="Motion Fused Frames" /></p>
-</div>
+
 
 **Maintainers:** [Okan Köpüklü](https://github.com/okankop) and [Fabian Herzog](https://github.com/fubel)
 
