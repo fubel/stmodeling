@@ -93,7 +93,7 @@ class TSN(nn.Module):
                                                             num_class, args.rnn_layer)
         elif self.consensus_type == 'Transformer':
             self.consensus = Transformermodule.return_Transformer(self.consensus_type, self.img_feature_dim, self.num_segments,
-                                                     num_class, hidden_dim=1024, fc_dim=1024)
+                                                     num_class, fc_dim=1024)
         else:
             self.consensus = ConsensusModule(consensus_type)
 
@@ -254,6 +254,11 @@ class TSN(nn.Module):
                 # later BN's are frozen
                 if not self._enable_pbn or bn_cnt == 1:
                     bn.extend(list(m.parameters()))
+            # There can be a problem here. 
+            elif isinstance(m, torch.nn.Embedding):
+                bn.extend(list(m.parameters()))
+            elif isinstance(m, torch.nn.LayerNorm):
+                bn.extend(list(m.parameters()))
             elif len(m._modules) == 0:
                 if len(list(m.parameters())) > 0:
                     raise ValueError("New atomic module type: {}. Need to give it a learning policy".format(type(m)))
