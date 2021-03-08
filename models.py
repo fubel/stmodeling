@@ -5,7 +5,7 @@ from transforms import *
 from torch.nn.init import normal_, constant_
 
 import pretrainedmodels
-from modules import FCN2Dmodule, FCN3Dmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule
+from modules import FCN2Dmodule, FCN3Dmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule, Transformermodule
 
 
 class TSN(nn.Module):
@@ -91,6 +91,9 @@ class TSN(nn.Module):
         elif self.consensus_type == 'CONVLSTM':
             self.consensus = CONVLSTMmodule.return_CONVLSTM(self.consensus_type, self.img_feature_dim, args.rnn_hidden_size,
                                                             num_class, args.rnn_layer)
+        elif self.consensus_type == 'Transformer':
+            self.consensus = Transformermodule.return_Transformer(self.consensus_type, self.img_feature_dim, self.num_segments,
+                                                     num_class, hidden_dim=1024, fc_dim=1024)
         else:
             self.consensus = ConsensusModule(consensus_type)
 
@@ -123,7 +126,7 @@ class TSN(nn.Module):
         else:
             setattr(self.base_model, self.base_model.last_layer_name, nn.Dropout(p=self.dropout))
             if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'FCN2D',
-                                       'GFLSTM', 'BLSTM', 'DNDF']:
+                                       'GFLSTM', 'BLSTM', 'DNDF','Transformer']:
                 # set the MFFs feature dimension
                 self.new_fc = nn.Linear(feature_dim, self.img_feature_dim)
             elif self.consensus_type in ['TSN']:

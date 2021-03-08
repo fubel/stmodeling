@@ -6,9 +6,9 @@ from transformers import BertModel,BertTokenizer
 from transformers.modeling_bert import BertEmbeddings
 
 class Transformermodule(nn.Module):
-	def __init__(self,input_dim,hidden_dim,fc_dim,num_class,num_segments):
+	def __init__(self,image_feature_dim,num_segments,num_class,hidden_dim,fc_dim):
 		super(Transformermodule,self).__init__()
-		self.input_dim = input_dim
+		self.input_dim = image_feature_dim
 		self.num_segments = num_segments
 
 		# Load Bert Model as the transformer
@@ -59,3 +59,8 @@ class Transformermodule(nn.Module):
 		token_seq_ids = torch.tensor(token_seq_ids)
 		attention_mask = torch.sensor(attention_mask)
 		return token_seq_ids,attention_mask 
+
+def return_Transformer(relation_type, img_feature_dim, num_frames, num_class,hidden_dim,fc_dim):
+    Transformermodel = Transformermodule(img_feature_dim, num_frames, num_class, hidden_dim, fc_dim)
+
+    return Transformermodel
