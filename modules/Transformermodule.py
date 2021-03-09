@@ -21,11 +21,11 @@ class Transformermodule(nn.Module):
 		self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
 
 		# Project the video embedding to the transformer embedding for processing.
-		self.hidden_dim = BertModel.config.hidden_size
+		self.hidden_dim = self.transformer.config.hidden_size
 
-		self.projection_layer = nn.Linear(image_feature_dim,hidden_dim)
+		self.projection_layer = nn.Linear(image_feature_dim,self.hidden_dim)
 		self.embedding_fn = BertEmbeddings(self.config)
-		self.fc = nn.Sequential(nn.Linear(hidden_dim,fc_dim),
+		self.fc = nn.Sequential(nn.Linear(self.hidden_dim,fc_dim),
 								nn.Dropout(0.5),
 								nn.Tanh(),
 								nn.Linear(fc_dim,num_class))
@@ -34,12 +34,12 @@ class Transformermodule(nn.Module):
 		# [CLS] [UNK] * NUM_FRAMES(NUM_SEGMENTS)
 		token_seq_ids = [self.tokenizer.cls_token_id]
 		token_seq_ids += [self.tokenizer.unk_token_id] * self.num_segments
-		token_seq_ids = np.repeat(token_seq_ids[:,np.newaxis],batch_size,axis=2)
+		token_seq_ids = np.tile(token_seq_ids,(batch_size,1))
 
 		# Initialize attention mask with 1s. Number of frames + number of special tokens
-		attention_mask = [1] * (self.num_segments + 1)
-		attention_mask = np.repeat(attention_mask[:,np.newaxis],batch_size,axis=2)
+		attention_mask = np.ones((batch_size,self.num_segments+1))
 
+		print(token_seq_ids)
 		# Convert to tensors
 		token_seq_ids = torch.tensor(token_seq_ids)
 		attention_mask = torch.tensor(attention_mask)
@@ -51,8 +51,10 @@ class Transformermodule(nn.Module):
 		token_seq_ids, attention_mask = self.get_seq_info(batch_size)
 		print('token seq',token_seq_ids.size())
 		projected_frames = self.projection_layer(input)
-		embedded_frames = self.embedding_fn(inputs_embeds=projected_frames,
-									position_ids = torch.arange(1,self.num_segments + 1))
+		
+		position_ids = np.arange(1,self.num_segments+1)
+		position_ids = torch.tensor(position_ids)
+		embedded_frames = self.embedding_fn(inputs_embeds=projected_frames, position_ids = position_ids)
 
 		# Get attention mask and token sequence ids
 
@@ -72,7 +74,7 @@ class Transformermodule(nn.Module):
 		return logits
 	
 
-def return_Transformer(relation_type, img_feature_dim, num_frames, num_class,hidden_dim,fc_dim):
-    Transformermodel = Transformermodule(img_feature_dim, num_frames, num_class, hidden_dim, fc_dim)
+def return_Transformer(relation_type, img_feature_dim, num_frames, num_class,fc_dim=1024):
+    Transformermodel = Transformermodule(img_feature_dim, num_frames, num_class, fc_dim)
 
     return Transformermodel
