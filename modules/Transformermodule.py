@@ -30,33 +30,18 @@ class Transformermodule(nn.Module):
 								nn.Tanh(),
 								nn.Linear(fc_dim,num_class))
 
-	def get_seq_info(self,batch_size):
-		# [CLS] [UNK] * NUM_FRAMES(NUM_SEGMENTS)
-		token_seq_ids = [self.tokenizer.cls_token_id]
-		token_seq_ids += [self.tokenizer.unk_token_id] * self.num_segments
-		token_seq_ids = np.tile(token_seq_ids,(batch_size,1))
-
-		# Initialize attention mask with 1s. Number of frames + number of special tokens
-		attention_mask = np.ones((batch_size,self.num_segments+1))
-
-		print(token_seq_ids)
-		# Convert to tensors
-		token_seq_ids = torch.tensor(token_seq_ids)
-		attention_mask = torch.tensor(attention_mask)
-		return token_seq_ids,attention_mask 
-	def forward(self,input):
-		
+	def forward(self,input):	
 		# Size: [batch size, number of frames, number of features per frame]
 		batch_size = input.size()[0]
-		token_seq_ids, attention_mask = self.get_seq_info(batch_size)
-		print('token seq',token_seq_ids.size())
-		projected_frames = self.projection_layer(input)
-		
-		position_ids = np.arange(1,self.num_segments+1)
-		position_ids = torch.tensor(position_ids)
-		embedded_frames = self.embedding_fn(inputs_embeds=projected_frames, position_ids = position_ids)
 
 		# Get attention mask and token sequence ids
+		token_seq_ids, attention_mask = self.get_seq_info(batch_size)
+		
+		projected_frames = self.projection_layer(input)
+		
+		embedded_frames = self.embedding_fn(inputs_embeds=projected_frames, 
+											position_ids=torch.arange(1, self.max_len + 1, device=self.transformer.weight.device)
+		
 
 		embeddings_input = self.embedding_fn(input_ids=token_seq_ids)
 		
@@ -73,6 +58,20 @@ class Transformermodule(nn.Module):
 
 		return logits
 	
+	def get_seq_info(self,batch_size):
+		# [CLS] [UNK] * NUM_FRAMES(NUM_SEGMENTS)
+		token_seq_ids = [self.tokenizer.cls_token_id]
+		token_seq_ids += [self.tokenizer.unk_token_id] * self.num_segments
+		token_seq_ids = np.tile(token_seq_ids,(batch_size,1))
+
+		# Initialize attention mask with 1s. Number of frames + number of special tokens
+		attention_mask = np.ones((batch_size,self.num_segments+1))
+
+		print(token_seq_ids)
+		# Convert to tensors
+		token_seq_ids = torch.tensor(token_seq_ids)
+		attention_mask = torch.tensor(attention_mask)
+		return token_seq_ids,attention_mask 
 
 def return_Transformer(relation_type, img_feature_dim, num_frames, num_class,fc_dim=1024):
     Transformermodel = Transformermodule(img_feature_dim, num_frames, num_class, fc_dim)
