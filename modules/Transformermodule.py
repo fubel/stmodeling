@@ -12,11 +12,13 @@ class Transformermodule(nn.Module):
 		super(Transformermodule,self).__init__()
 		self.image_feature_dim = image_feature_dim
 		self.num_segments = num_segments
-
+		
+		self.configname = 'bert-base-uncased'
+		
 		# Load Bert Model as the transformer
-		self.transformer = BertModel
-		self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-		self.config = BertConfig.from_pretrained('bert-base-uncased')
+		self.tokenizer = BertTokenizer.from_pretrained(self.configname)
+		self.config = BertConfig.from_pretrained(self.configname)
+		self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
 
 		# Project the video embedding to the transformer embedding for processing.
 		self.hidden_dim = BertModel.config.hidden_size
