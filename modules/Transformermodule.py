@@ -33,23 +33,23 @@ class Transformermodule(nn.Module):
 	def forward(self,input):	
 		# Size: [batch size, number of frames, number of features per frame]
 		batch_size = input.size()[0]
+		device = self.projection_layer.weight.device
 
 		# Get attention mask and token sequence ids
 		token_seq_ids, attention_mask = self.get_seq_info(batch_size)
-		
-		projected_frames = self.projection_layer(input)
-		
-		embedded_frames = self.embedding_fn(inputs_embeds=projected_frames, 
-											position_ids=torch.arange(1, self.max_len + 1, device=self.transformer.weight.device)
-		
+		token_seq_ids = token_seq_ids.to(device)
+		attention_mask = attention_mask.to(device)
 
+		projected_frames = self.projection_layer(input)
+		embedded_frames = self.embedding_fn(inputs_embeds=projected_frames, 
+											position_ids=torch.arange(1, self.num_segments + 1, device=device))
 		embeddings_input = self.embedding_fn(input_ids=token_seq_ids)
-		
+
 		# Replace [UNK] embeddings with video embeddings
 		embeddings_input[:,1:self.num_segments+1,:] = embedded_frames
 
 		# [batch, max_len, emb_dim]
-		tranformer_output = self.transformer(inputs_embeds=embeddings_input,           
+		transformer_output = self.transformer(inputs_embeds=embeddings_input,           
                                               attention_mask=attention_mask)[0]
 
 		# Take the first value
@@ -67,7 +67,6 @@ class Transformermodule(nn.Module):
 		# Initialize attention mask with 1s. Number of frames + number of special tokens
 		attention_mask = np.ones((batch_size,self.num_segments+1))
 
-		print(token_seq_ids)
 		# Convert to tensors
 		token_seq_ids = torch.tensor(token_seq_ids)
 		attention_mask = torch.tensor(attention_mask)
