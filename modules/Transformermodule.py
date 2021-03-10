@@ -18,7 +18,13 @@ class Transformermodule(nn.Module):
 		# Load Bert Model as the transformer
 		self.tokenizer = BertTokenizer.from_pretrained(self.configname)
 		self.config = BertConfig.from_pretrained(self.configname)
+		# The full Bert Model with 12 Layers
+		#self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
+		
+		# In the encoder architecture 8 layers are removed and there is only 4 layers.
 		self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
+		self.transformer = remove_bert_layers(self.transformer, num_layers_to_keep=4)
+
 
 		# Project the video embedding to the transformer embedding for processing.
 		self.hidden_dim = self.transformer.config.hidden_size
@@ -30,6 +36,20 @@ class Transformermodule(nn.Module):
 								nn.Tanh(),
 								nn.Linear(fc_dim,num_class))
 
+	def remove_bert_layers(self,model,num_layers_to_keep=12):
+	    old_module_list = model.bert.encoder.layer
+		new_module_list = nn.ModuleList()
+
+		# Now iterate over all layers, only keepign only the relevant layers.
+		for i in range(0, len(num_layers_to_keep)):
+			new_module_list.append(old_module_list[i])
+
+		# create a copy of the model, modify it with the new list, and return
+		copy_of_model = copy.deepcopy(model)
+		copy_of_model.bert.encoder.layer = new_module_list
+
+    	return copy_of_model
+		
 	def forward(self,input):	
 		# Size: [batch size, number of frames, number of features per frame]
 		batch_size = input.size()[0]
