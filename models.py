@@ -220,6 +220,7 @@ class TSN(nn.Module):
         normal_weight = []
         normal_bias = []
         bn = []
+        transformer_weight = []
 
         conv_cnt = 0
         bn_cnt = 0
@@ -256,9 +257,9 @@ class TSN(nn.Module):
                     bn.extend(list(m.parameters()))
             # There can be a problem here. 
             elif isinstance(m, torch.nn.Embedding):
-                bn.extend(list(m.parameters()))
+                transformer_weight.extend(list(m.parameters()))
             elif isinstance(m, torch.nn.LayerNorm):
-                bn.extend(list(m.parameters()))
+                transformer_weight.extend(list(m.parameters()))
             elif len(m._modules) == 0:
                 if len(list(m.parameters())) > 0:
                     raise ValueError("New atomic module type: {}. Need to give it a learning policy".format(type(m)))
@@ -276,6 +277,7 @@ class TSN(nn.Module):
              'name': "normal_bias"},
             {'params': bn, 'lr_mult': 1, 'decay_mult': 0,
              'name': "BN scale/shift"},
+            {'params': transformer_weight, 'lr_mult': 1, 'decay_mult': 1, 'name': "transformer_weight"},
         ]
 
     def forward(self, input):
