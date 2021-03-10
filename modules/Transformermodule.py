@@ -37,7 +37,7 @@ class Transformermodule(nn.Module):
 								nn.Linear(fc_dim,num_class))
 
 	def remove_bert_layers(self,model,num_layers_to_keep=12):
-	    old_module_list = model.bert.encoder.layer
+		old_module_list = model.bert.encoder.layer
 		new_module_list = nn.ModuleList()
 
 		# Now iterate over all layers, only keepign only the relevant layers.
@@ -48,7 +48,7 @@ class Transformermodule(nn.Module):
 		copy_of_model = copy.deepcopy(model)
 		copy_of_model.bert.encoder.layer = new_module_list
 
-    	return copy_of_model
+		return copy_of_model
 		
 	def forward(self,input):	
 		# Size: [batch size, number of frames, number of features per frame]
