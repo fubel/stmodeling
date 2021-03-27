@@ -17,22 +17,25 @@ import pdb
 ROOT_DATASET_JESTER = '/usr/home/sut/datasets/jester/'
 ROOT_DATASET = '/usr/home/sut/datasets/jester/rgb'
 
-dataset_name = 'jester-v1'
-with open('%s-labels.csv' % dataset_name) as f:
+ROOT_DATASET_STH = '/usr/home/sut/datasets/something-something-v2/'
+ROOT_DATASET_STH_RGB = '/usr/home/sut/datasets/something-something-v2/extracted-frames'
+
+dataset_name = 'something-something-v2'
+with open('%s%s-labels.csv' % (ROOT_DATASET_STH, dataset_name)) as f:
     lines = f.readlines()
 categories = []
 for line in lines:
     line = line.rstrip()
     categories.append(line)
 categories = sorted(categories)
-with open(os.path.join(ROOT_DATASET_JESTER,'category.txt'), 'w') as f:
+with open(os.path.join(ROOT_DATASET_STH,'category.txt'), 'w') as f:
     f.write('\n'.join(categories))
 
 dict_categories = {}
 for i, category in enumerate(categories):
     dict_categories[category] = i
 
-files_input = ['%s-validation.csv' % dataset_name, '%s-train.csv' % dataset_name]
+files_input = ['%s%s-validation.csv' % (ROOT_DATASET_STH, dataset_name), '%s%s-train.csv' % (ROOT_DATASET_STH,dataset_name)]
 files_output = ['val_videofolder.txt', 'train_videofolder.txt']
 for (filename_input, filename_output) in zip(files_input, files_output):
     with open(filename_input) as f:
@@ -49,8 +52,8 @@ for (filename_input, filename_output) in zip(files_input, files_output):
         curFolder = folders[i]
         curIDX = idx_categories[i]
         # counting the number of frames in each video folders
-        dir_files = os.listdir(os.path.join(ROOT_DATASET, curFolder))
+        dir_files = os.listdir(os.path.join(ROOT_DATASET_STH_RGB, curFolder))
         output.append('%s %d %d' % (curFolder, len(dir_files), int(curIDX)))
         print('%d/%d' % (i, len(folders)))
-    with open(os.path.join(ROOT_DATASET_JESTER,filename_output), 'w') as f:
+    with open(os.path.join(ROOT_DATASET_STH,filename_output), 'w') as f:
         f.write('\n'.join(output))
