@@ -24,7 +24,7 @@ class Transformermodule(nn.Module):
 		
 		# In the encoder architecture 8 layers are removed and there is only 4 layers.
 		self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
-		self.transformer = self.remove_bert_layers(self.transformer, num_layers_to_keep=4)
+		self.transformer = self.remove_bert_layers(self.transformer, num_layers_to_keep=3)
 
 
 		# Project the video embedding to the transformer embedding for processing.
