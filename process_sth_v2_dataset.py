@@ -16,7 +16,7 @@ import pdb
 import json
 
 ROOT_DATASET = '/usr/home/sut/datasets/something-something-v2/'
-ROOT_DATASET_FRAMES = '/usr/home/sut/datasets/something-something-v2/extracted-frames'
+ROOT_DATASET_FRAMES = '/usr/home/sut/datasets/something-something-v2/rgb'
 
 dataset_name = 'something-something-v2'
 with open(f'{ROOT_DATASET}{dataset_name}-labels.json') as labels_json:
@@ -28,7 +28,7 @@ files_input = ['%s%s-validation.json' % (ROOT_DATASET, dataset_name), '%s%s-trai
 files_output = ['val_videofolder.txt', 'train_videofolder.txt']
 for (filename_input, filename_output) in zip(files_input, files_output):
     with open(filename_input) as f:
-        lines = json.load(filename_input)
+        lines = json.load(f)
     folders = []
     idx_categories = []
     for line in lines:
