@@ -132,30 +132,28 @@ def main():
         return
 
     log_training = open(os.path.join(args.root_log, '%s.csv' % args.store_name), 'w')
+    history = {
+        'accuracy': [],
+        'val_accuracy': [],
+        'loss': [],
+        'val_loss': []
+    }
+    model_details = {
+        'backbone': args.arch,
+        'transformer_arch': args.consensus_type,
+        'lr': args.lr,
+        'batch_size': args.batch_size
+    }
     for epoch in range(args.start_epoch, args.epochs):
         if not args.consensus_type == 'DNDF':
             adjust_learning_rate(optimizer, epoch, args.lr_steps)
 
-        history = {
-            'accuracy': [0.5,0.6],
-            'val_accuracy': [0.2,0.3],
-            'loss': [0.9,0.8],
-            'val_loss': [0.8,0.7]
-        }
-        model_details = {
-            'backbone': args.arch,
-            'transformer_arch': args.consensus_type,
-            'lr': args.lr,
-            'batch_size': args.batch_size
-        }
-        plot_utils.plot_statistics(history,model_details)
-        
         # train for one epoch
         acc, loss = train(train_loader, model, criterion, optimizer, epoch, log_training)
 
         # evaluate on validation set
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            prec1, val_acc , val_loss = validate(val_loader, model, criterion, (epoch + 1) * len(train_loader), log_training)
+            prec1, val_loss = validate(val_loader, model, criterion, (epoch + 1) * len(train_loader), log_training)
 
             # remember best prec@1 and save checkpoint
             is_best = prec1 > best_prec1
@@ -169,9 +167,9 @@ def main():
         
         history['accuracy'].append(acc)
         history['loss'].append(loss)
-        history['val_accuracy'].append(val_acc)
+        history['val_accuracy'].append(prec1)
         history['val_loss'].append(val_loss)
-
+        plot_utils.plot_statistics(history,model_details)
         
 
 def train(train_loader, model, criterion, optimizer, epoch, log):
