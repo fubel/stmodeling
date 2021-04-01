@@ -149,6 +149,7 @@ def main():
             'batch_size': args.batch_size
         }
         plot_utils.plot_statistics(history,model_details)
+        
         # train for one epoch
         acc, loss = train(train_loader, model, criterion, optimizer, epoch, log_training)
 
@@ -239,7 +240,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
             print(output)
             log.write(output + '\n')
             log.flush()
-        return 
+        #return 
     return top1.avg,losses.avg
 
 
