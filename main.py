@@ -137,16 +137,16 @@ def main():
             adjust_learning_rate(optimizer, epoch, args.lr_steps)
 
         history = {
-            accuracy = [0.5,0.6],
-            val_accuracy = [0.2,0.3],
-            loss = [0.9,0.8],
-            val_loss = [0.8,0.7]
+            'accuracy': [0.5,0.6],
+            'val_accuracy': [0.2,0.3],
+            'loss': [0.9,0.8],
+            'val_loss': [0.8,0.7]
         }
         model_details = {
-            backbone: args.arch,
-            transformer_arch: args.consensus_type,
-            lr: args.lr,
-            batch_size: args.batch_size
+            'backbone': args.arch,
+            'transformer_arch': args.consensus_type,
+            'lr': args.lr,
+            'batch_size': args.batch_size
         }
         plot_utils.plot_statistics(history,model_details)
         # train for one epoch
@@ -166,10 +166,10 @@ def main():
                 'best_prec1': best_prec1,
             }, is_best)
         
-        history.accuracy.append(acc)
-        history.loss.append(loss)
-        history.val_accuracy.append(val_acc)
-        history.val_loss.append(val_loss)
+        history['accuracy'].append(acc)
+        history['loss'].append(loss)
+        history['val_accuracy'].append(val_acc)
+        history['val_loss'].append(val_loss)
 
         
 
