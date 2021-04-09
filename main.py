@@ -169,7 +169,7 @@ def main():
         history['loss'].append(loss)
         history['val_accuracy'].append(prec1)
         history['val_loss'].append(val_loss)
-        plot_utils.plot_statistics(history,model_details)
+    plot_utils.plot_statistics(history,model_details)
         
 
 def train(train_loader, model, criterion, optimizer, epoch, log):
