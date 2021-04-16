@@ -197,7 +197,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
 
-        
+        optimizer.zero_grad()
 
         # compute output
         output = model(input_var)
@@ -218,11 +218,14 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
             total_norm = clip_grad_norm_(model.parameters(), args.clip_gradient)
             # if total_norm > args.clip_gradient:
             # print("clipping gradient: {} with coef {}".format(total_norm, args.clip_gradient / total_norm))
-
+        
+        optimizer.step()
+        '''
         if i%8 == 0:
             optimizer.step()
             # compute gradient and do SGD step
             optimizer.zero_grad()
+        '''
 
         # measure elapsed time
         batch_time.update(time.time() - end)
