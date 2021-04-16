@@ -4,9 +4,10 @@ import torch.nn.functional as F
 import numpy as np
 import copy
 
-from transformers import BertModel,BertTokenizer
-from transformers import BertConfig
+from transformers import BertModel,BertTokenizer,RobertaModel,RobertaTokenizer
+from transformers import BertConfig, RobertaConfig
 from transformers.models.bert.modeling_bert import BertEmbeddings
+from transformers.models.roberta.modeling_roberta import RobertaEmbeddings
 
 class Transformermodule(nn.Module):
 	def __init__(self,image_feature_dim,num_segments,num_class,fc_dim=1024):
@@ -14,16 +15,17 @@ class Transformermodule(nn.Module):
 		self.image_feature_dim = image_feature_dim
 		self.num_segments = num_segments
 		
-		self.configname = 'bert-base-uncased'
+		#self.configname = 'bert-base-uncased'
+		self.configname = 'roberta-base-uncased'
 		
 		# Load Bert Model as the transformer
-		self.tokenizer = BertTokenizer.from_pretrained(self.configname)
-		self.config = BertConfig.from_pretrained(self.configname)
+		self.tokenizer = RobertaTokenizer.from_pretrained(self.configname)
+		self.config = RobertaConfig.from_pretrained(self.configname)
 		# The full Bert Model with 12 Layers
-		#self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
+		# self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
 		
 		# In the encoder architecture 8 layers are removed and there is only 4 layers.
-		self.transformer = BertModel.from_pretrained(self.configname, config = self.config)
+		self.transformer = RobertaModel.from_pretrained(self.configname, config = self.config)
 		self.transformer = self.remove_bert_layers(self.transformer, num_layers_to_keep=3)
 
 
@@ -31,7 +33,7 @@ class Transformermodule(nn.Module):
 		self.hidden_dim = self.transformer.config.hidden_size
 
 		self.projection_layer = nn.Linear(image_feature_dim,self.hidden_dim)
-		self.embedding_fn = BertEmbeddings(self.config)
+		self.embedding_fn = RobertaEmbeddings(self.config)
 		self.fc = nn.Sequential(nn.Linear(self.hidden_dim,fc_dim),
 								nn.Dropout(0.5),
 								nn.Tanh(),
