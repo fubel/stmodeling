@@ -16,7 +16,7 @@ class Transformermodule(nn.Module):
 		self.num_segments = num_segments
 		
 		self.configname = 'bert-base-uncased'
-		#self.configname = 'roberta-base-uncased'
+		#self.configname = 'roberta-base'
 		
 		# Load Bert Model as the transformer
 		self.tokenizer = BertTokenizer.from_pretrained(self.configname)
@@ -53,7 +53,7 @@ class Transformermodule(nn.Module):
 
 		return copy_of_model
 		
-	def forward(self,input):	
+	def forward(self,input):
 		# Size: [batch size, number of frames, number of features per frame]
 		batch_size = input.size()[0]
 		device = self.projection_layer.weight.device

@@ -115,7 +115,8 @@ class TSN(nn.Module):
             self.base_model.last_layer_name = 'fc'
         elif self.base_model_name == 'BNInception':
             feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
-            setattr(self.base_model, 'global_pool', nn.Dropout(p=0))
+            if self.consensus_type in ['CONVLSTM', 'FCN3D']:
+                setattr(self.base_model, 'global_pool', nn.Dropout(p=0))
         else:
             feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
         
@@ -125,6 +126,7 @@ class TSN(nn.Module):
             self.new_fc = None
         else:
             setattr(self.base_model, self.base_model.last_layer_name, nn.Dropout(p=self.dropout))
+            
             if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'FCN2D',
                                        'GFLSTM', 'BLSTM', 'DNDF','Transformer']:
                 # set the MFFs feature dimension
@@ -135,7 +137,6 @@ class TSN(nn.Module):
             elif self.consensus_type in ['CONVLSTM', 'FCN3D']:
                 # the default consensus types in TSN is avg
                 self.new_fc = nn.Conv2d(feature_dim, self.img_feature_dim, 1)
-
 
         std = 0.001
         if self.new_fc is None:
@@ -307,7 +308,7 @@ class TSN(nn.Module):
             base_out = self.softmax(base_out)
         if self.reshape:
             base_out = base_out.view((-1, self.num_segments) + base_out.size()[1:])
-
+        
         output = self.consensus(base_out)
         return output.squeeze(1)
 
