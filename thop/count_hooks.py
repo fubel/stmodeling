@@ -122,3 +122,22 @@ def count_linear(m, x, y):
 	total_ops = (total_mul + total_add) * num_elements
 
 	m.total_ops += torch.Tensor([int(total_ops)])
+
+def count_tanh(m, x, y):
+	# per output element
+	x = x[0]
+
+	nelements = x.numel()
+	total_ops = nelements
+
+	m.total_ops += torch.Tensor([int(total_ops)])
+
+def count_layer_norm(m, x, y):
+	x = x[0]
+
+	nelements = x.numel()
+	total_sub = nelements
+	total_div = nelements
+	total_ops = total_sub + total_div
+
+	m.total_ops += torch.Tensor([int(total_ops)])

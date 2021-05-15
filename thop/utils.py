@@ -19,6 +19,9 @@ register_hooks = {
 	nn.AvgPool3d: count_avgpool,
 	nn.Linear: count_linear,
 	nn.Dropout: None,
+	nn.Tanh:count_tanh,
+	nn.Embedding: None, # dictionary lookup
+	nn.LayerNorm: count_layer_norm,
 }
 
 
@@ -47,10 +50,11 @@ def profile(model, input_size, custom_ops={}):
 			logging.info("Register FLOP counter for module %s" % str(m))
 			m.register_forward_hook(fn)
 
+	model = model.cuda()
 	model.eval()
 	model.apply(add_hooks)
 
-	x = torch.zeros(input_size).to(device=model.device_ids[0])
+	x = torch.zeros(input_size).cuda()
 	model(x)
 
 	total_ops = 0
