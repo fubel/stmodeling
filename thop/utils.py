@@ -50,7 +50,7 @@ def profile(model, input_size, custom_ops={}):
 	model.eval()
 	model.apply(add_hooks)
 
-	x = torch.zeros(input_size)
+	x = torch.zeros(input_size).to(device=model.device_ids[0])
 	model(x)
 
 	total_ops = 0
