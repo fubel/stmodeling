@@ -31,7 +31,7 @@ def count_conv2d(m, x, y):
 	total_ops = output_elements * ops_per_element
 
 	# in case same conv is used multiple times
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_conv3d(m, x, y):
@@ -60,7 +60,7 @@ def count_conv3d(m, x, y):
 	total_ops = output_elements * ops_per_element
 
 	# in case same conv is used multiple times
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_bn2d(m, x, y):
@@ -71,7 +71,7 @@ def count_bn2d(m, x, y):
 	total_div = nelements
 	total_ops = total_sub + total_div
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_relu(m, x, y):
@@ -80,7 +80,7 @@ def count_relu(m, x, y):
 	nelements = x.numel()
 	total_ops = nelements
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_softmax(m, x, y):
@@ -93,7 +93,7 @@ def count_softmax(m, x, y):
 	total_div = nfeatures
 	total_ops = batch_size * (total_exp + total_add + total_div)
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_maxpool(m, x, y):
@@ -101,7 +101,7 @@ def count_maxpool(m, x, y):
 	num_elements = y.numel()
 	total_ops = kernel_ops * num_elements
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_avgpool(m, x, y):
@@ -111,7 +111,7 @@ def count_avgpool(m, x, y):
 	num_elements = y.numel()
 	total_ops = kernel_ops * num_elements
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 
 def count_linear(m, x, y):
@@ -121,7 +121,7 @@ def count_linear(m, x, y):
 	num_elements = y.numel()
 	total_ops = (total_mul + total_add) * num_elements
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 def count_tanh(m, x, y):
 	# per output element
@@ -130,7 +130,7 @@ def count_tanh(m, x, y):
 	nelements = x.numel()
 	total_ops = nelements
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
 
 def count_layer_norm(m, x, y):
 	x = x[0]
@@ -140,4 +140,4 @@ def count_layer_norm(m, x, y):
 	total_div = nelements
 	total_ops = total_sub + total_div
 
-	m.total_ops += torch.Tensor([int(total_ops)])
+	m.total_ops += torch.Tensor([int(total_ops)]).cuda()
