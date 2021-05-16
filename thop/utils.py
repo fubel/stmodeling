@@ -30,8 +30,8 @@ def profile(model, input_size, custom_ops={}):
 		if len(list(m.children())) > 0:
 			return
 
-		m.register_buffer('total_ops', torch.zeros(1))
-		m.register_buffer('total_params', torch.zeros(1))
+		m.register_buffer('total_ops', torch.zeros(1).cuda())
+		m.register_buffer('total_params', torch.zeros(1).cuda())
 
 		for p in m.parameters():
 			m.total_params += torch.Tensor([p.numel()])

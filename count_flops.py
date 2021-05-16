@@ -7,7 +7,7 @@ from modules import Transformermodule
 
 model = Transformermodule.return_Transformer('Transformer',512,8,27)
 model = model.cuda()
-model = nn.DataParallel(model,device_ids=[0])
+model = nn.DataParallel(model,device_ids=None).cuda()
 print(model)
 
 pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
