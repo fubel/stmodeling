@@ -33,6 +33,7 @@ class Transformermodule(nn.Module):
 		self.hidden_dim = self.transformer.config.hidden_size
 
 		self.projection_layer = nn.Linear(image_feature_dim,self.hidden_dim)
+		self.config.vocab_size = 1024 # Decrease the number of embeddings.
 		self.embedding_fn = BertEmbeddings(self.config)
 		self.fc = nn.Sequential(nn.Linear(self.hidden_dim,fc_dim),
 								nn.Dropout(0.5),
@@ -54,6 +55,7 @@ class Transformermodule(nn.Module):
 		return copy_of_model
 		
 	def forward(self,input):
+		print(input.shape)
 		# Size: [batch size, number of frames, number of features per frame]
 		batch_size = input.size()[0]
 		device = self.projection_layer.weight.device

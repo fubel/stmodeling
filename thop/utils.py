@@ -35,7 +35,6 @@ def profile(model, input_size, custom_ops={}):
 
 		for p in m.parameters():
 			m.total_params += torch.Tensor([p.numel()]).cuda()
-
 		m_type = type(m)
 		fn = None
 
