@@ -95,6 +95,17 @@ python main.py something RGB --arch BNInception --num_segments 16 \
 
 ## Reference
 
+```
+@inproceedings{kopuklu2021comparative,
+  title={Comparative Analysis of CNN-based Spatiotemporal Reasoning in Videos},
+  author={K{\"o}p{\"u}kl{\"u}, Okan and Herzog, Fabian and Rigoll, Gerhard},
+  booktitle={International Conference on Pattern Recognition},
+  pages={186--202},
+  year={2021},
+  organization={Springer}
+}
+```
+
 ## Acknowledgement 
 
 This project was build on top of [TRN-pytorch](https://github.com/metalbubble/TRN-pytorch), which itself was build on top of [TSN-Pytorch](https://github.com/yjxiong/temporal-segment-networks). We thank the authors for sharing their code publicly.
