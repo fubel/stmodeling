@@ -15,6 +15,7 @@ from dataset import TSNDataSet
 from models import TSN
 from transforms import *
 from opts import parser
+from ops import plot_utils
 import datasets_video
 
 best_prec1 = 0
@@ -29,7 +30,7 @@ def main():
                                                                                                        args.modality)
     num_class = len(categories)
 
-    args.store_name = '_'.join(['STModeling', args.dataset, args.modality, args.arch, args.consensus_type,
+    args.store_name = '_'.join(['STModeling', args.dataset, args.modality, args.arch, args.consensus_type,args.store_name,
                                 'segment%d' % args.num_segments])
     print('storing name: ' + args.store_name)
 
@@ -131,16 +132,28 @@ def main():
         return
 
     log_training = open(os.path.join(args.root_log, '%s.csv' % args.store_name), 'w')
+    history = {
+        'accuracy': [],
+        'val_accuracy': [],
+        'loss': [],
+        'val_loss': []
+    }
+    model_details = {
+        'backbone': args.arch,
+        'transformer_arch': args.consensus_type,
+        'lr': args.lr,
+        'batch_size': args.batch_size
+    }
     for epoch in range(args.start_epoch, args.epochs):
         if not args.consensus_type == 'DNDF':
             adjust_learning_rate(optimizer, epoch, args.lr_steps)
 
         # train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch, log_training)
+        acc, loss = train(train_loader, model, criterion, optimizer, epoch, log_training)
 
         # evaluate on validation set
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            prec1 = validate(val_loader, model, criterion, (epoch + 1) * len(train_loader), log_training)
+            prec1, val_loss = validate(val_loader, model, criterion, (epoch + 1) * len(train_loader), log_training)
 
             # remember best prec@1 and save checkpoint
             is_best = prec1 > best_prec1
@@ -151,7 +164,13 @@ def main():
                 'state_dict': model.state_dict(),
                 'best_prec1': best_prec1,
             }, is_best)
-
+        
+        history['accuracy'].append(acc)
+        history['loss'].append(loss)
+        history['val_accuracy'].append(prec1)
+        history['val_loss'].append(val_loss)
+    plot_utils.plot_statistics(history,model_details)
+        
 
 def train(train_loader, model, criterion, optimizer, epoch, log):
     batch_time = AverageMeter()
@@ -178,7 +197,6 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
 
-        # compute gradient and do SGD step
         optimizer.zero_grad()
 
         # compute output
@@ -200,8 +218,14 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
             total_norm = clip_grad_norm_(model.parameters(), args.clip_gradient)
             # if total_norm > args.clip_gradient:
             # print("clipping gradient: {} with coef {}".format(total_norm, args.clip_gradient / total_norm))
-
+        
         optimizer.step()
+        '''
+        if i%8 == 0:
+            optimizer.step()
+            # compute gradient and do SGD step
+            optimizer.zero_grad()
+        '''
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -219,6 +243,8 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
             print(output)
             log.write(output + '\n')
             log.flush()
+        #return 
+    return top1.avg,losses.avg
 
 
 def validate(val_loader, model, criterion, iter, log):
@@ -274,8 +300,7 @@ def validate(val_loader, model, criterion, iter, log):
     print(output_best)
     log.write(output + ' ' + output_best + '\n')
     log.flush()
-
-    return top1.avg
+    return top1.avg, losses.avg
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
@@ -325,7 +350,7 @@ def accuracy(output, target, topk=(1,)):
 
     res = []
     for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
+        correct_k = correct[:k].contiguous().view(-1).float().sum(0)
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 

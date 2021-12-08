@@ -5,7 +5,7 @@ from transforms import *
 from torch.nn.init import normal_, constant_
 
 import pretrainedmodels
-from modules import FCN2Dmodule, FCN3Dmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule
+from modules import FCN2Dmodule, FCN3Dmodule, DNDFmodule, MLPmodule, RNNmodule, TRNmodule, TSNmodule, CONVLSTMmodule, Transformermodule
 
 
 class TSN(nn.Module):
@@ -91,6 +91,9 @@ class TSN(nn.Module):
         elif self.consensus_type == 'CONVLSTM':
             self.consensus = CONVLSTMmodule.return_CONVLSTM(self.consensus_type, self.img_feature_dim, args.rnn_hidden_size,
                                                             num_class, args.rnn_layer)
+        elif self.consensus_type == 'Transformer':
+            self.consensus = Transformermodule.return_Transformer(self.consensus_type, self.img_feature_dim, self.num_segments,
+                                                     num_class, fc_dim=1024)
         else:
             self.consensus = ConsensusModule(consensus_type)
 
@@ -112,7 +115,8 @@ class TSN(nn.Module):
             self.base_model.last_layer_name = 'fc'
         elif self.base_model_name == 'BNInception':
             feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
-            setattr(self.base_model, 'global_pool', nn.Dropout(p=0))
+            if self.consensus_type in ['CONVLSTM', 'FCN3D']:
+                setattr(self.base_model, 'global_pool', nn.Dropout(p=0))
         else:
             feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
         
@@ -122,8 +126,9 @@ class TSN(nn.Module):
             self.new_fc = None
         else:
             setattr(self.base_model, self.base_model.last_layer_name, nn.Dropout(p=self.dropout))
+            
             if self.consensus_type in ['MLP', 'TRNmultiscale', 'LSTM', 'GRU', 'RNN_TANH', 'RNN_RELU', 'FCN2D',
-                                       'GFLSTM', 'BLSTM', 'DNDF']:
+                                       'GFLSTM', 'BLSTM', 'DNDF','Transformer']:
                 # set the MFFs feature dimension
                 self.new_fc = nn.Linear(feature_dim, self.img_feature_dim)
             elif self.consensus_type in ['TSN']:
@@ -132,7 +137,6 @@ class TSN(nn.Module):
             elif self.consensus_type in ['CONVLSTM', 'FCN3D']:
                 # the default consensus types in TSN is avg
                 self.new_fc = nn.Conv2d(feature_dim, self.img_feature_dim, 1)
-
 
         std = 0.001
         if self.new_fc is None:
@@ -217,6 +221,7 @@ class TSN(nn.Module):
         normal_weight = []
         normal_bias = []
         bn = []
+        transformer_weight = []
 
         conv_cnt = 0
         bn_cnt = 0
@@ -251,6 +256,11 @@ class TSN(nn.Module):
                 # later BN's are frozen
                 if not self._enable_pbn or bn_cnt == 1:
                     bn.extend(list(m.parameters()))
+            # There can be a problem here. 
+            elif isinstance(m, torch.nn.Embedding):
+                transformer_weight.extend(list(m.parameters()))
+            elif isinstance(m, torch.nn.LayerNorm):
+                transformer_weight.extend(list(m.parameters()))
             elif len(m._modules) == 0:
                 if len(list(m.parameters())) > 0:
                     raise ValueError("New atomic module type: {}. Need to give it a learning policy".format(type(m)))
@@ -268,6 +278,7 @@ class TSN(nn.Module):
              'name': "normal_bias"},
             {'params': bn, 'lr_mult': 1, 'decay_mult': 0,
              'name': "BN scale/shift"},
+            {'params': transformer_weight, 'lr_mult': 1, 'decay_mult': 1, 'name': "transformer_weight"},
         ]
 
     def forward(self, input):
@@ -297,7 +308,7 @@ class TSN(nn.Module):
             base_out = self.softmax(base_out)
         if self.reshape:
             base_out = base_out.view((-1, self.num_segments) + base_out.size()[1:])
-
+        
         output = self.consensus(base_out)
         return output.squeeze(1)
 

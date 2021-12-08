@@ -2,8 +2,8 @@ import os
 import threading
 
 NUM_THREADS = 100
-VIDEO_ROOT = '/usr/home/kop/Downloads/20bn-something-something-v2'         # Downloaded webm videos
-FRAME_ROOT = '/usr/home/kop/Downloads/something_frames'  # Directory for extracted frames
+VIDEO_ROOT = '/usr/home/sut/datasets/something-something-v2/20bn-something-something-v2'         # Downloaded webm videos
+FRAME_ROOT = '/usr/home/sut/datasets/something-something-v2/rgb'  # Directory for extracted frames
 
 
 def split(l, n):
@@ -29,6 +29,7 @@ if not os.path.exists(FRAME_ROOT):
     os.makedirs(FRAME_ROOT)
 
 video_list = os.listdir(VIDEO_ROOT)
+'''
 splits = list(split(video_list, NUM_THREADS))
 
 threads = []
@@ -39,3 +40,5 @@ for i, split in enumerate(splits):
 
 for thread in threads:
     thread.join()
+'''
+target(video_list)
